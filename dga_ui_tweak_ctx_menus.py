@@ -77,92 +77,25 @@ class PropertiesOutlinerToggler(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class View3DPivotPointMenu(bpy.types.Menu):
-    """Contextual menu to select the pivot point in the 3D View"""
+class CtxPivotPointMenu(bpy.types.Menu):
+    """Contextual menu to select the pivot point"""
     bl_label = "Pivot Point"
-    bl_idname = "VIEW_3D_MT_pivot_point_ctx_menu"
+    bl_idname = "ANY_MT_pivot_point_ctx_menu"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.type != 'CLIP_EDITOR' or context.space_data.clip != None
 
     @classmethod
     def create_keymaps(cls):
         if KeymapsAddon.is_available():
             KeymapsAddon.new('VIEW_3D', "wm.call_menu", 'COMMA', 'PRESS').properties.name = cls.bl_idname
-
-    def draw(self, context):
-        self.add_item('ACTIVE_ELEMENT', text='Active Element', icon='ROTACTIVE', text_ctxt=i18n_contexts.default)
-        self.add_item('MEDIAN_POINT', text='Median Point', icon='ROTATECENTER', text_ctxt=i18n_contexts.default)
-        self.add_item('INDIVIDUAL_ORIGINS', text='Individual Origins', icon='ROTATECOLLECTION', text_ctxt=i18n_contexts.default)
-        self.add_item('CURSOR', text='3D Cursor', icon='CURSOR', text_ctxt=i18n_contexts.default)
-        self.add_item('BOUNDING_BOX_CENTER', text='Bounding Box Center', icon='ROTATE', text_ctxt=i18n_contexts.default)
-
-    def add_item(self, value, **kargs):
-        props = self.layout.operator("wm.context_set_enum", **kargs)
-        props.data_path, props.value = 'space_data.pivot_point', value
-
-
-class ImageEditorPivotPointMenu(bpy.types.Menu):
-    """Contextual menu to select the pivot point in the UV/Image editor"""
-    bl_label = "Pivot"
-    bl_idname = "IMAGE_EDITOR_MT_pivot_point_ctx_menu"
-
-    @classmethod
-    def create_keymaps(cls):
-        if KeymapsAddon.is_available():
             KeymapsAddon.new('IMAGE_EDITOR', "wm.call_menu", 'COMMA', 'PRESS').properties.name = cls.bl_idname
-
-    def draw(self, context):
-        self.add_item('INDIVIDUAL_ORIGINS', text='Individual Origins', icon='ROTATECOLLECTION', text_ctxt=i18n_contexts.default)
-        self.add_item('CURSOR', text='2D Cursor', icon='CURSOR', text_ctxt=i18n_contexts.default)
-        self.add_item('MEDIAN', text='Median Point', icon='ROTATECENTER', text_ctxt=i18n_contexts.default)
-        self.add_item('CENTER', text='Bounding Box Center', icon='ROTATE', text_ctxt=i18n_contexts.default)
-
-    def add_item(self, value, **kargs):
-        props = self.layout.operator("wm.context_set_enum", **kargs)
-        props.data_path, props.value = 'space_data.pivot_point', value
-
-
-class GraphEditorPivotPointMenu(bpy.types.Menu):
-    """Contextual menu to select the pivot point in the graph editor"""
-    bl_label = "Pivot Point"
-    bl_idname = "GRAPH_EDITOR_MT_pivot_point_ctx_menu"
-
-    @classmethod
-    def create_keymaps(cls):
-        if KeymapsAddon.is_available():
             KeymapsAddon.new('GRAPH_EDITOR', "wm.call_menu", 'COMMA', 'PRESS').properties.name = cls.bl_idname
-
-    def draw(self, context):
-        self.add_item('INDIVIDUAL_ORIGINS', text='Individual Origins', icon='ROTATECOLLECTION', text_ctxt=i18n_contexts.default)
-        self.add_item('CURSOR', text='2D Cursor', icon='CURSOR', text_ctxt=i18n_contexts.default)
-        self.add_item('BOUNDING_BOX_CENTER', text='Bounding Box Center', icon='ROTATE', text_ctxt=i18n_contexts.default)
-
-    def add_item(self, value, **kargs):
-        props = self.layout.operator("wm.context_set_enum", **kargs)
-        props.data_path, props.value = 'space_data.pivot_point', value
-
-
-class ClipEditorPivotPointMenu(bpy.types.Menu):
-    """Contextual menu to select the pivot point in the movie clip editor"""
-    bl_label = "Pivot Point"
-    bl_idname = "CLIP_EDITOR_MT_pivot_point_ctx_menu"
-
-    @classmethod
-    def create_keymaps(cls):
-        if KeymapsAddon.is_available():
             KeymapsAddon.new('CLIP_EDITOR', "wm.call_menu", 'COMMA', 'PRESS').properties.name = cls.bl_idname
 
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.view == 'CLIP' and context.space_data.clip is not None
-
     def draw(self, context):
-        self.add_item('MEDIAN_POINT', text='Median Point', icon='ROTATECENTER', text_ctxt=i18n_contexts.default)
-        self.add_item('INDIVIDUAL_ORIGINS', text='Individual Origins', icon='ROTATECOLLECTION', text_ctxt=i18n_contexts.default)
-        self.add_item('CURSOR', text='2D Cursor', icon='CURSOR', text_ctxt=i18n_contexts.default)
-        self.add_item('BOUNDING_BOX_CENTER', text='Bounding Box Center', icon='ROTATE', text_ctxt=i18n_contexts.default)
-
-    def add_item(self, value, **kargs):
-        props = self.layout.operator("wm.context_set_enum", **kargs)
-        props.data_path, props.value = 'space_data.pivot_point', value
+        self.layout.prop(context.space_data, "pivot_point", expand=True)
 
 
 class ProportionalEditingMenu(bpy.types.Menu):
@@ -182,6 +115,7 @@ class ProportionalEditingMenu(bpy.types.Menu):
 
     def draw(self, context):
         self.layout.prop(context.tool_settings, "proportional_edit", expand=True)
+
 
 class ProportionalEditingFalloffMenu(bpy.types.Menu):
     """Contextual menu to select the proportional editing falloff"""
@@ -224,12 +158,20 @@ def unregister_classes(*args):
         bpy.utils.unregister_class(cls)
 
 def register():
-    register_classes(PropertiesOutlinerToggler, View3DPivotPointMenu, ImageEditorPivotPointMenu, GraphEditorPivotPointMenu, ClipEditorPivotPointMenu)
-    register_classes(ProportionalEditingMenu, ProportionalEditingFalloffMenu)
+    register_classes(
+        PropertiesOutlinerToggler,
+        CtxPivotPointMenu,
+        ProportionalEditingMenu,
+        ProportionalEditingFalloffMenu
+    )
 
 def unregister():
-    unregister_classes(PropertiesOutlinerToggler, View3DPivotPointMenu, ImageEditorPivotPointMenu, GraphEditorPivotPointMenu, ClipEditorPivotPointMenu)
-    unregister_classes(ProportionalEditingMenu, ProportionalEditingFalloffMenu)
+    unregister_classes(
+        PropertiesOutlinerToggler,
+        CtxPivotPointMenu,
+        ProportionalEditingMenu,
+        ProportionalEditingFalloffMenu
+    )
     KeymapsAddon.unregister()
 
 if __name__ == "__main__":
