@@ -34,6 +34,7 @@ class KeymapsAddon():
         'UV_EDITOR': ('UV Editor', 'EMPTY'),
         'OBJECT_MODE': ('Object Mode', 'EMPTY'),
         'MASK_EDITING': ('Mask Editing', 'EMPTY'),
+        'SCULPT': ('Sculpt', 'EMPTY'),
     }
 
     @classmethod
@@ -146,6 +147,25 @@ class ProportionalEditingFalloffMenu(bpy.types.Menu):
     def draw(self, context):
         self.layout.prop(context.tool_settings, "proportional_edit_falloff", expand=True)
 
+class SculptBrushMenu(bpy.types.Menu):
+    bl_idname = "CTXMENU_MT_sculpt_brush_ctx_menu"
+    bl_label = "Sculpt Brushes"
+
+    @classmethod
+    def create_keymaps(cls):
+        if KeymapsAddon.is_available():
+            KeymapsAddon.new('SCULPT', "wm.call_menu", 'W', 'PRESS').properties.name = cls.bl_idname
+
+    def draw(self, context):
+        sculpt_bruhes = [b for b in bpy.data.brushes if b.use_paint_sculpt]
+        nb_columns, remainder = divmod(len(sculpt_bruhes), 8)
+        if remainder > 0:
+            nb_columns += 1
+
+        layout = self.layout.column_flow(columns=nb_columns)
+        for b in sculpt_bruhes:
+            layout.operator("paint.brush_select", text=b.name, icon_value=layout.icon(b)).sculpt_tool = b.sculpt_tool
+
 
 def register_classes(*args):
     for cls in args:
@@ -162,7 +182,8 @@ def register():
         PropertiesOutlinerToggler,
         CtxPivotPointMenu,
         ProportionalEditingMenu,
-        ProportionalEditingFalloffMenu
+        ProportionalEditingFalloffMenu,
+        SculptBrushMenu
     )
 
 def unregister():
@@ -170,7 +191,8 @@ def unregister():
         PropertiesOutlinerToggler,
         CtxPivotPointMenu,
         ProportionalEditingMenu,
-        ProportionalEditingFalloffMenu
+        ProportionalEditingFalloffMenu,
+        SculptBrushMenu
     )
     KeymapsAddon.unregister()
 
