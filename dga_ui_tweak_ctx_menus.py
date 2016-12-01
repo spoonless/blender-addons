@@ -11,7 +11,6 @@ bl_info = {
 }
 
 import bpy
-from bpy.app.translations import contexts as i18n_contexts
 
 class KeymapsAddon():
     """Utility class to manage keymaps bindings"""
