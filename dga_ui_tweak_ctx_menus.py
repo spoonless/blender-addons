@@ -162,8 +162,10 @@ class SculptBrushMenu(bpy.types.Menu):
             nb_columns += 1
 
         layout = self.layout.column_flow(columns=nb_columns)
-        for b in sculpt_bruhes:
-            layout.operator("paint.brush_select", text=b.name, icon_value=layout.icon(b)).sculpt_tool = b.sculpt_tool
+        for i, b in enumerate(sculpt_bruhes):
+            op = layout.operator("brush.active_index_set", text=b.name, icon_value=layout.icon(b))
+            op.index = i
+            op.mode = "sculpt"
 
 
 def register_classes(*args):
