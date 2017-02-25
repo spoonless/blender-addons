@@ -58,9 +58,9 @@ class KeymapsAddon():
         cls.created_keymaps.clear()
 
 
-class PropertiesOutlinerToggler(bpy.types.Operator):
+class PropertiesOutlinerTogglerOperator(bpy.types.Operator):
     """Toggling from Properties panel to Outliner panel (and vice-versa)"""
-    bl_idname = "vm.properties_outliner_toggler"
+    bl_idname = "outliner.toggle_properties"
     bl_label = "Toggle Properties/Outliner views"
     bl_options = {'REGISTER'}
 
@@ -74,6 +74,42 @@ class PropertiesOutlinerToggler(bpy.types.Operator):
             context.area.type = 'PROPERTIES'
         elif context.area.type == 'PROPERTIES':
             context.area.type = 'OUTLINER'
+        return {'FINISHED'}
+
+
+class ArmaturePositionTogglerOperator(bpy.types.Operator):
+    """Toggle Pose/Rest position for parent armature"""
+    bl_idname = "armature.toggle_position"
+    bl_label = "[DGA] Toggle Pose/Rest position for parent armature"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def create_keymaps(cls):
+        pass
+
+    def execute(self, context):
+        armatures = []
+        for obj in bpy.context.selected_objects:
+            while obj is not None and obj.type != 'ARMATURE':
+                obj = obj.parent
+            if obj is not None and obj not in armatures:
+                obj.data.pose_position = 'POSE' if obj.data.pose_position == 'REST' else 'REST'
+                armatures.append(obj)
+        return {'FINISHED'}
+
+
+class SimplifySceneTogglerOperator(bpy.types.Operator):
+    """Toggle simplify scene"""
+    bl_idname = "scene.toggle_simplify"
+    bl_label = "[DGA] Toggle simplify scene"
+    bl_options = {'REGISTER'}
+
+    @classmethod
+    def create_keymaps(cls):
+        pass
+
+    def execute(self, context):
+        bpy.context.scene.render.use_simplify = not bpy.context.scene.render.use_simplify
         return {'FINISHED'}
 
 
@@ -146,6 +182,7 @@ class ProportionalEditingFalloffMenu(bpy.types.Menu):
     def draw(self, context):
         self.layout.prop(context.tool_settings, "proportional_edit_falloff", expand=True)
 
+
 class SculptBrushMenu(bpy.types.Menu):
     bl_idname = "CTXMENU_MT_sculpt_brush_ctx_menu"
     bl_label = "Sculpt Brushes"
@@ -168,34 +205,29 @@ class SculptBrushMenu(bpy.types.Menu):
             op.mode = "sculpt"
 
 
-def register_classes(*args):
-    for cls in args:
+CLASSES=[
+    PropertiesOutlinerTogglerOperator,
+    ArmaturePositionTogglerOperator,
+    SimplifySceneTogglerOperator,
+    CtxPivotPointMenu,
+    ProportionalEditingMenu,
+    ProportionalEditingFalloffMenu,
+    SculptBrushMenu
+]
+
+
+def register():
+    for cls in CLASSES:
         bpy.utils.register_class(cls)
         if cls.create_keymaps:
             cls.create_keymaps()
 
-def unregister_classes(*args):
-    for cls in args:
-        bpy.utils.unregister_class(cls)
-
-def register():
-    register_classes(
-        PropertiesOutlinerToggler,
-        CtxPivotPointMenu,
-        ProportionalEditingMenu,
-        ProportionalEditingFalloffMenu,
-        SculptBrushMenu
-    )
 
 def unregister():
-    unregister_classes(
-        PropertiesOutlinerToggler,
-        CtxPivotPointMenu,
-        ProportionalEditingMenu,
-        ProportionalEditingFalloffMenu,
-        SculptBrushMenu
-    )
+    for cls in CLASSES:
+        bpy.utils.unregister_class(cls)
     KeymapsAddon.unregister()
+
 
 if __name__ == "__main__":
     register()
