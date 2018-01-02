@@ -34,6 +34,7 @@ class KeymapsAddon():
         'OBJECT_MODE': ('Object Mode', 'EMPTY'),
         'MASK_EDITING': ('Mask Editing', 'EMPTY'),
         'SCULPT': ('Sculpt', 'EMPTY'),
+        'WINDOW': ('Window', 'EMPTY'),
     }
 
     @classmethod
@@ -216,11 +217,23 @@ CLASSES=[
 ]
 
 
+def register_ndof_keymaps():
+    if KeymapsAddon.is_available():
+        KeymapsAddon.new('SCULPT', "view3d.ndof_orbit_zoom", 'NDOF_MOTION', 'ANY', ctrl=True)
+        KeymapsAddon.new('SCULPT', "view3d.ndof_orbit", 'NDOF_MOTION', 'ANY')
+        KeymapsAddon.new('SCULPT', "view3d.ndof_pan", 'NDOF_MOTION', 'ANY', shift=True)
+        KeymapsAddon.new('SCULPT', "view3d.ndof_all", 'NDOF_MOTION', 'ANY', shift=True, ctrl=True)
+        KeymapsAddon.new('SCULPT', "wm.call_menu", 'NDOF_BUTTON_1', 'PRESS').properties.name = SculptBrushMenu.bl_idname
+        KeymapsAddon.new('WINDOW', 'wm.call_menu', 'NDOF_BUTTON_8', 'PRESS').properties.name = 'USERPREF_MT_ndof_settings'
+
+
 def register():
     for cls in CLASSES:
         bpy.utils.register_class(cls)
         if cls.create_keymaps:
             cls.create_keymaps()
+
+    register_ndof_keymaps()
 
 
 def unregister():
